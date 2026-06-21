@@ -91,19 +91,27 @@ function RegistryView() {
 
 function ReservationModal({ item, onClose, onConfirm }) {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const isFormValid = formData.name.trim() !== '' && formData.email.trim() !== '' && formData.message.trim() !== '';
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4">Offrir {item.name}</h2>
         <p className="mb-4 text-sm text-gray-600">
           Nous vous remercions pour votre gentille attention. Vous pouvez contribuer directement par un simple virement. Les détails vous seront envoyés par e-mail.
         </p>
-        <input type="text" placeholder="Name" className="w-full border p-2 mb-2" onChange={e => setFormData({ ...formData, name: e.target.value })} />
-        <input type="email" placeholder="Email" className="w-full border p-2 mb-2" onChange={e => setFormData({ ...formData, email: e.target.value })} />
-        <textarea placeholder="Message" className="w-full border p-2 mb-2" onChange={e => setFormData({ ...formData, message: e.target.value })} />
+        <input required type="text" placeholder="Name" className="w-full border p-2 mb-2" onChange={e => setFormData({ ...formData, name: e.target.value })} />
+        <input required type="email" placeholder="Email" className="w-full border p-2 mb-2" onChange={e => setFormData({ ...formData, email: e.target.value })} />
+        <textarea required placeholder="Message" className="w-full border p-2 mb-2" onChange={e => setFormData({ ...formData, message: e.target.value })} />
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 border rounded">Cancel</button>
-          <button onClick={() => onConfirm(formData)} className="px-4 py-2 bg-green-600 text-white rounded">Confirmer</button>
+          <button 
+            onClick={() => onConfirm(formData)} 
+            disabled={!isFormValid}
+            className={`px-4 py-2 rounded ${isFormValid ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+          >
+            Confirmer
+          </button>
         </div>
       </div>
     </div>
