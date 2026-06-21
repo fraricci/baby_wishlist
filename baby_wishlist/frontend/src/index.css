@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.font-twinkle-star {
+  font-family: 'Twinkle Star', cursive;
+}
+
+.bg-custom-green {
+  background-color: #E2EDD6;
+}
+
+.bg-custom-header {
+  background-color: #F6F7FA;
+}
+
+.text-custom-header {
+  color: #799787;
+}
