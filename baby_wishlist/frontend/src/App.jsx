@@ -42,9 +42,10 @@ function RegistryView() {
       console.log('Reservation successful, updating items and closing modal');
       setItems(items.map(item => item._id === selectedItem._id ? { ...item, is_available: false } : item));
       closeModal();
-      console.log('closeModal called');
+      console.log('closeModal called. SelectedItem should be null now.');
     } else {
-      console.error('Reservation failed');
+      const errorText = await response.text();
+      console.error('Reservation failed. Status:', response.status, 'Error:', errorText);
     }
   };
 
