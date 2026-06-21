@@ -85,7 +85,16 @@ function RegistryView() {
           </div>
         ))}
       </div>
-      {selectedItem && <ReservationModal item={selectedItem} onClose={closeModal} onConfirm={confirmReservation} />}
+      {selectedItem && (
+        <ReservationModal 
+          item={selectedItem} 
+          onClose={closeModal} 
+          onConfirm={(data) => {
+            console.log('onConfirm triggered in RegistryView with data:', data);
+            confirmReservation(data);
+          }} 
+        />
+      )}
     </div>
   );
 }
