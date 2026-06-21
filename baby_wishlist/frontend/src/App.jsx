@@ -107,7 +107,10 @@ function ReservationModal({ item, onClose, onConfirm }) {
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 border rounded">Cancel</button>
           <button 
-            onClick={() => onConfirm(formData)} 
+            onClick={() => {
+              console.log('Confirmer button clicked');
+              onConfirm(formData);
+            }} 
             disabled={!isFormValid}
             className={`px-4 py-2 rounded ${isFormValid ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
           >
