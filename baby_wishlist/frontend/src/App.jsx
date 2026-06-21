@@ -30,22 +30,28 @@ function RegistryView() {
 
   const confirmReservation = async (formData) => {
     console.log('Confirming reservation for item:', selectedItem._id);
-    const response = await fetch(`${API_URL}/api/items/${selectedItem._id}/reserve`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
+    console.log('API URL being used:', `${API_URL}/api/items/${selectedItem._id}/reserve`);
+    
+    try {
+        const response = await fetch(`${API_URL}/api/items/${selectedItem._id}/reserve`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
 
-    console.log('Reservation response status:', response.status);
+        console.log('Reservation response received, status:', response.status);
 
-    if (response.ok) {
-      console.log('Reservation successful, updating items and closing modal');
-      setItems(items.map(item => item._id === selectedItem._id ? { ...item, is_available: false } : item));
-      closeModal();
-      console.log('closeModal called. SelectedItem should be null now.');
-    } else {
-      const errorText = await response.text();
-      console.error('Reservation failed. Status:', response.status, 'Error:', errorText);
+        if (response.ok) {
+          console.log('Reservation successful, updating items and closing modal');
+          setItems(items.map(item => item._id === selectedItem._id ? { ...item, is_available: false } : item));
+          closeModal();
+          console.log('closeModal called. SelectedItem should be null now.');
+        } else {
+          const errorText = await response.text();
+          console.error('Reservation failed. Status:', response.status, 'Error:', errorText);
+        }
+    } catch (error) {
+        console.error('Error during fetch:', error);
     }
   };
 
