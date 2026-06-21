@@ -29,15 +29,22 @@ function RegistryView() {
   const closeModal = () => setSelectedItem(null);
 
   const confirmReservation = async (formData) => {
+    console.log('Confirming reservation for item:', selectedItem._id);
     const response = await fetch(`${API_URL}/api/items/${selectedItem._id}/reserve`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
     });
 
+    console.log('Reservation response status:', response.status);
+
     if (response.ok) {
+      console.log('Reservation successful, updating items and closing modal');
       setItems(items.map(item => item._id === selectedItem._id ? { ...item, is_available: false } : item));
       closeModal();
+      console.log('closeModal called');
+    } else {
+      console.error('Reservation failed');
     }
   };
 
