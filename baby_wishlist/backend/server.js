@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 
 const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
@@ -10,16 +10,9 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-// Email Transporter
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false, // true for 465, false for 587
-  auth: {
-    user: process.env.EMAIL_USER, // Brevo Login
-    pass: process.env.EMAIL_APP_PASSWORD, // Brevo SMTP Key
-  },
-});
+// Brevo API Configuration
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -96,45 +89,43 @@ app.patch('/api/items/:id/reserve', async (req, res) => {
     );
     
     // Send email to Donor
-    const donorMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: `Votre contribution pour : ${item.name}`,
-      text: `Bonjour ${name},
-
-Nous vous remercions pour votre contribution à l'achat de ${item.name} d'un montant de ${item.price}€. 
-Vous pouvez contribuer directement à ce cadeau par un simple virement au compte suivant:
-
-Nom: Aurelie Champagne
-IBAN: BE98103027337193
-BIC: NICABEBBXXX
-Communication: Cadeau naissance du petit oursin
-
-Si besoin, vous pouvez répondre à cette adresse email.
-
-Aurelie & Francesco`,
-    };
+    let donorEmail = new SibApiV3Sdk.SendSmtpEmail();
+    donorEmail.sender = { name: "Aurelie & Francesco", email: process.env.EMAIL_USER };
+    donorEmail.to = [{ email: email }];
+    donorEmail.subject = `Votre contribution pour : ${item.name}`;
+    donorEmail.htmlContent = `
+      <h1>Bonjour ${name},</h1>
+      <p>Nous vous remercions pour votre contribution à l'achat de <strong>${item.name}</strong> d'un montant de ${item.price}€.</p>
+      <p>Vous pouvez contribuer directement à ce cadeau par un simple virement au compte suivant:</p>
+      <ul>
+        <li><strong>Nom:</strong> Aurelie Champagne</li>
+        <li><strong>IBAN:</strong> BE98103027337193</li>
+        <li><strong>BIC:</strong> NICABEBBXXX</li>
+        <li><strong>Communication:</strong> Cadeau naissance du petit oursin</li>
+      </ul>
+      <p>Si besoin, vous pouvez répondre à cette adresse email.</p>
+      <p>Aurelie & Francesco</p>
+    `;
 
     // Send email to Owners
-    const ownerMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: 'aurechampagne@gmail.com, frankyricci@gmail.com',
-      subject: `Nouveau cadeau offert: ${item.name}`,
-      text: `Bonjour,
+    let ownerEmail = new SibApiV3Sdk.SendSmtpEmail();
+    ownerEmail.sender = { name: "Registry App", email: process.env.EMAIL_USER };
+    ownerEmail.to = [{ email: 'aurechampagne@gmail.com' }, { email: 'frankyricci@gmail.com' }];
+    ownerEmail.subject = `Nouveau cadeau offert: ${item.name}`;
+    ownerEmail.htmlContent = `
+      <h1>Bonjour,</h1>
+      <p>Un nouveau cadeau vient d'être offert !</p>
+      <ul>
+        <li><strong>Donateur:</strong> ${name} (${email})</li>
+        <li><strong>Cadeau:</strong> ${item.name}</li>
+        <li><strong>Montant:</strong> ${item.price}€</li>
+        <li><strong>Message:</strong> ${message}</li>
+      </ul>
+      <p>Aurelie & Francesco</p>
+    `;
 
-Un nouveau cadeau vient d'être offert !
-
-Détails:
-- Donateur: ${name} (${email})
-- Cadeau: ${item.name}
-- Montant: ${item.price}€
-- Message: ${message}
-
-Aurelie & Francesco`,
-    };
-
-    await transporter.sendMail(donorMailOptions);
-    await transporter.sendMail(ownerMailOptions);
+    apiInstance.sendTransacEmail(donorEmail);
+    apiInstance.sendTransacEmail(ownerEmail);
     
     res.json(item);
   } catch (err) {
@@ -145,12 +136,13 @@ Aurelie & Francesco`,
 // Temporary Email Test Route
 app.get('/api/test-email', async (req, res) => {
   try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: 'Test Email from Render',
-      text: 'If you see this, email is working!',
-    });
+    let email = new SibApiV3Sdk.SendSmtpEmail();
+    email.sender = { name: "Test App", email: process.env.EMAIL_USER };
+    email.to = [{ email: process.env.EMAIL_USER }];
+    email.subject = 'Test Email from Render';
+    email.htmlContent = '<h1>If you see this, email is working!</h1>';
+    
+    const info = await apiInstance.sendTransacEmail(email);
     res.json({ success: true, info: info.response });
   } catch (error) {
     console.error('Test failed:', error);
