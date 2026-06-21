@@ -140,4 +140,20 @@ Aurelie & Francesco`,
   }
 });
 
+// Temporary Email Test Route
+app.get('/api/test-email', async (req, res) => {
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: 'Test Email from Render',
+      text: 'If you see this, email is working!',
+    });
+    res.json({ success: true, info: info.response });
+  } catch (error) {
+    console.error('Test failed:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
