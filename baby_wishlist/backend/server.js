@@ -11,8 +11,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
 // Brevo API Configuration
-const apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+const apiInstance = new brevo.Brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(brevo.Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -89,7 +89,7 @@ app.patch('/api/items/:id/reserve', async (req, res) => {
     );
     
     // Send email to Donor
-    let donorEmail = new brevo.SendSmtpEmail();
+    let donorEmail = new brevo.Brevo.SendSmtpEmail();
     donorEmail.sender = { name: "Aurelie & Francesco", email: process.env.EMAIL_USER };
     donorEmail.to = [{ email: email }];
     donorEmail.subject = `Votre contribution pour : ${item.name}`;
@@ -108,7 +108,7 @@ app.patch('/api/items/:id/reserve', async (req, res) => {
     `;
 
     // Send email to Owners
-    let ownerEmail = new brevo.SendSmtpEmail();
+    let ownerEmail = new brevo.Brevo.SendSmtpEmail();
     ownerEmail.sender = { name: "Registry App", email: process.env.EMAIL_USER };
     ownerEmail.to = [{ email: 'aurechampagne@gmail.com' }, { email: 'frankyricci@gmail.com' }];
     ownerEmail.subject = `Nouveau cadeau offert: ${item.name}`;
@@ -136,7 +136,7 @@ app.patch('/api/items/:id/reserve', async (req, res) => {
 // Temporary Email Test Route
 app.get('/api/test-email', async (req, res) => {
   try {
-    let email = new brevo.SendSmtpEmail();
+    let email = new brevo.Brevo.SendSmtpEmail();
     email.sender = { name: "Test App", email: process.env.EMAIL_USER };
     email.to = [{ email: process.env.EMAIL_USER }];
     email.subject = 'Test Email from Render';
